@@ -193,44 +193,6 @@ Commands.globalban = {
   }
 }
 
-Commands.twitch = {
-  name: 'twitch',
-  help: 'Tells you if a specified streamer is live on Twitch.tv',
-  level: 0,
-  fn: function (msg, suffix) {
-    if (!suffix) {
-      msg.channel.sendMessage('No channel specified!')
-      return
-    }
-    var url = 'https://api.twitch.tv/kraken/streams/' + suffix
-    request.get(url)
-    .set({'Accept': 'application/vnd.twitchtv.v3+json', 'Client-ID': config.api_keys.twitchId})
-    .end((error, response) => {
-      if (error) {
-        bugsnag.notify(error)
-      }
-      if (!error && response.statusCode === 200) {
-        var resp
-        try {
-          resp = response.body
-        } catch (e) {
-          msg.channel.sendMessage('The API returned an unconventional response.')
-        }
-        if (resp.stream !== null) {
-          msg.channel.sendMessage(suffix + ' is currently live at https://www.twitch.tv/' + suffix)
-          return
-        } else if (resp.stream === null) {
-          msg.channel.sendMessage(suffix + ' is not currently streaming')
-          return
-        }
-      } else if (!error && response.statusCode === 404) {
-        msg.channel.sendMessage('Channel does not exist!')
-        return
-      }
-    })
-  }
-}
-
 Commands.customize = {
   name: 'customize',
   help: 'Adjust my behaviour in this server!',
@@ -283,7 +245,7 @@ Commands.info = {
     msg.channel.sendMessage('', false, {
       color: 0x3498db,
       author: {icon_url: bot.User.avatarURL, name: `${bot.User.username}#${bot.User.discriminator} (${bot.User.id})`},
-      title: `Running on WildBeast version ${require('../../package.json').version}`,
+      title: `Running on KingdomBot version ${require('../../package.json').version}`,
       timestamp: new Date(),
       fields: field,
       description: '*My developer is Dougley#6248*',
@@ -470,41 +432,13 @@ Commands.rankup = {
   }
 }
 
-Commands.setnsfw = {
-  name: 'setnsfw',
-  help: 'This changes if the channel allows NSFW commands.',
-  noDM: true,
-  usage: '<on | off>',
-  level: 3,
-  fn: function (msg, suffix) {
-    var Permissions = require('../databases/controllers/permissions.js')
-    if (msg.guild) {
-      if (suffix === 'on' || suffix === 'off') {
-        Permissions.adjustNSFW(msg, suffix).then((allow) => {
-          if (allow) {
-            msg.channel.sendMessage('NSFW commands are now allowed for ' + msg.channel.mention)
-          } else if (!allow) {
-            msg.channel.sendMessage('NSFW commands are now disallowed for ' + msg.channel.mention)
-          }
-        }).catch(() => {
-          msg.reply("I've failed to set NSFW flag!")
-        })
-      } else {
-        msg.channel.sendMessage('Use either `on` or `off` as suffix!')
-      }
-    } else {
-      msg.channel.sendMessage("NSFW commands are always allowed in DM's.")
-    }
-  }
-}
-
 Commands.hello = {
   name: 'hello',
   help: "I'll respond to you with hello along with a GitHub link!",
   timeout: 20,
   level: 0,
   fn: function (msg, suffix, bot) {
-    msg.channel.sendMessage('Hi ' + msg.author.username + ", I'm " + bot.User.username + ' and I was developed by the team over at TheSharks! Improve me by contributing to my source code on GitHub: https://github.com/TheSharks/WildBeast')
+    msg.channel.sendMessage('Hi ' + msg.author.username + ", I'm " + bot.User.username + ' and I was developed by the team over at TheSharks! I was modified by the crew over at TownyKingdoms.')
   }
 }
 
@@ -662,22 +596,6 @@ Commands.userinfo = {
         msg.channel.sendMessage('Something went wrong, try again later.')
       })
     })
-  }
-}
-
-Commands['join-server'] = {
-  name: 'join-server',
-  help: "I'll join the server you've requested me to join, as long as the invite is valid and I'm not banned of already in the requested server.",
-  aliases: ['join', 'joinserver', 'invite'],
-  usage: '<bot-mention> <instant-invite>',
-  level: 0,
-  fn: function (msg, suffix, bot) {
-    if (bot.User.bot) {
-      msg.channel.sendMessage("Sorry, bot accounts can't accept instant invites, instead, use my OAuth URL: <" + config.bot.oauth + '>')
-      return
-    } else {
-      Logger.warn('Using user accounts is deprecated!')
-    }
   }
 }
 

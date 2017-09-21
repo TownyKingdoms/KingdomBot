@@ -56,25 +56,6 @@ Commands.rip = {
   }
 }
 
-Commands.fortunecow = {
-  name: 'fortunecow',
-  help: "I'll get a random fortunecow!",
-  timeout: 20,
-  level: 0,
-  fn: function (msg) {
-    request.get('https://fortunecow.dougley.com/random')
-    .end((err, result) => {
-      if (!err && result.status === 200) {
-        msg.reply('```' + result.text + '```')
-      } else if (result.status === 429) {
-        msg.channel.sendMessage('Too many requests, please try again later.')
-      } else {
-        Logger.warn(err)
-      }
-    })
-  }
-}
-
 Commands.randomcat = {
   name: 'randomcat',
   help: "I'll get a random cat image for you!",
@@ -165,35 +146,6 @@ Commands.leetspeak = {
   }
 }
 
-Commands.stroke = {
-  name: 'stroke',
-  help: "I'll stroke someones ego!",
-  timeout: 5,
-  level: 0,
-  fn: function (msg, suffix) {
-    var name
-    if (suffix) {
-      name = suffix.split('"')
-      if (name.length === 1) {
-        name = ['', name]
-      }
-    } else {
-      name = ['Andrei', 'Zbikowski'] // I'm not sorry b1nzy <3
-    }
-    request.get('http://api.icndb.com/jokes/random')
-    .query({ escape: 'javascript' })
-    .query({ firstName: name[0] })
-    .query({ lastName: name[1] })
-    .end((err, res) => {
-      if (!err && res.status === 200) {
-        msg.channel.sendMessage(res.body.value.joke)
-      } else {
-        Logger.error(`Got an error: ${err}, status code: ${res.status}`)
-      }
-    })
-  }
-}
-
 Commands.yomomma = {
   name: 'yomomma',
   help: "I'll get a random yomomma joke for you!",
@@ -211,31 +163,6 @@ Commands.yomomma = {
         }
         var joke = JSON.parse(res.text)
         msg.channel.sendMessage(joke.joke)
-      } else {
-        Logger.error(`Got an error: ${err}, status code: ${res.status}`)
-      }
-    })
-  }
-}
-
-Commands.advice = {
-  name: 'advice',
-  help: "I'll give you some fantastic advice!",
-  noDM: true, // Ratelimits Ratelimits Ratelimits Ratelimits
-  timeout: 5,
-  level: 0,
-  fn: function (msg) {
-    request.get('http://api.adviceslip.com/advice')
-    .end((err, res) => {
-      if (!err && res.status === 200) {
-        try {
-          JSON.parse(res.text)
-        } catch (e) {
-          msg.channel.sendMessage('The API returned an unconventional response.')
-          return
-        }
-        var advice = JSON.parse(res.text)
-        msg.channel.sendMessage(advice.slip.advice)
       } else {
         Logger.error(`Got an error: ${err}, status code: ${res.status}`)
       }
@@ -391,78 +318,6 @@ Commands.cleverbot = {
         if (e) Logger.error(e)
         msg.channel.sendMessage(r)
       })
-    })
-  }
-}
-
-Commands.e621 = {
-  name: 'e621',
-  help: 'e621, the definition of *Stop taking the Internet so seriously.*',
-  usage: '<tags> multiword tags need to be typed like: wildbeast_is_a_discord_bot',
-  level: 0,
-  nsfw: true,
-  fn: function (msg, suffix) {
-    msg.channel.sendTyping()
-    request.post(`https://e621.net/post/index.json`)
-    .query({ limit: '30', tags: suffix })
-    .set({'Accept': 'application/json', 'User-Agent': 'Superagent Node.js'})
-    // Fetching 30 posts from E621 with the given tags
-    .end(function (err, result) {
-      if (!err && result.status === 200) {
-        if (result.body.length < 1) {
-          msg.reply('Sorry, nothing found.') // Correct me if it's wrong.
-        } else {
-          var count = Math.floor((Math.random() * result.body.length))
-          var FurryArray = []
-          if (suffix) {
-            FurryArray.push(`${msg.author.mention}, you've searched for ` + '`' + suffix + '`')
-          } else {
-            FurryArray.push(`${msg.author.mention}, you've searched for ` + '`random`')
-          } // hehe no privacy if you do the nsfw commands now.
-          FurryArray.push(result.body[count].file_url)
-          msg.channel.sendMessage(FurryArray.join('\n'))
-        }
-      } else {
-        Logger.error(`Got an error: ${err}, status code: ${result.status}`)
-      }
-    })
-  }
-}
-
-Commands.rule34 = {
-  name: 'rule34',
-  help: 'Rule#34 : If it exists there is porn of it. If not, start uploading.',
-  level: 0,
-  nsfw: true,
-  fn: function (msg, suffix) {
-    msg.channel.sendTyping()
-    request.post('http://rule34.xxx/index.php') // Fetching 100 rule34 pics
-    .query({ page: 'dapi', s: 'post', q: 'index', tags: suffix })
-    .end((err, result) => {
-      if (err || result.status !== 200) {
-        Logger.error(`${err}, status code ${result.status}`)
-        msg.channel.sendMessage('The API returned an unconventional response.')
-      }
-      var xml2js = require('xml2js')
-      if (result.text.length < 75) {
-        msg.reply('sorry, nothing found.') // Correct me if it's wrong.
-      } else {
-        xml2js.parseString(result.text, (err, reply) => {
-          if (err) {
-            msg.channel.sendMessage('The API returned an unconventional response.')
-          } else {
-            var count = Math.floor((Math.random() * reply.posts.post.length))
-            var FurryArray = []
-            if (!suffix) {
-              FurryArray.push(msg.author.mention + ", you've searched for `random`")
-            } else {
-              FurryArray.push(msg.author.mention + ", you've searched for `" + suffix + '`')
-            }
-            FurryArray.push(reply.posts.post[count].$.file_url)
-            msg.channel.sendMessage(FurryArray.join('\n'))
-          }
-        })
-      }
     })
   }
 }
